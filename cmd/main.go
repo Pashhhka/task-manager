@@ -8,6 +8,7 @@ import (
 	"github.com/Pashhhka/task-manager/internal/config"
 	"github.com/Pashhhka/task-manager/internal/database"
 	"github.com/Pashhhka/task-manager/internal/handler"
+	"github.com/Pashhhka/task-manager/internal/middleware"
 	"github.com/Pashhhka/task-manager/internal/repository"
 	"github.com/Pashhhka/task-manager/internal/service"
 )
@@ -33,6 +34,19 @@ func main() {
 
 	r.POST("/auth/register", authHandler.Register)
 	r.POST("/auth/login", authHandler.Login)
+
+	taskRepo := repository.NewTaskRepository(db)
+	taskService := service.NewTaskService(taskRepo)
+	taskHandler := handler.NewTaskHandler(taskService)
+
+	auth := r.Group("/")
+	auth.Use(middleware.JWTAuth())
+	{
+		auth.POST("/tasks", taskHandler.Create)
+		auth.GET("/tasks", taskHandler.GetAll)
+		auth.PUT("/tasks/:id", taskHandler.Update)
+		auth.DELETE("/tasks/:id", taskHandler.Delete)
+	}
 
 	log.Println("Server starting on :8080")
 	r.Run(":8080")

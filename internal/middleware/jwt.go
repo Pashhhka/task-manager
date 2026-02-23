@@ -32,6 +32,10 @@ func JWTAuth() gin.HandlerFunc {
 			return
 		}
 
+		claims := token.Claims.(jwt.MapClaims)
+		userID := int(claims["user_id"].(float64))
+		c.Set("user_id", userID)
+
 		c.Next()
 	}
 }
