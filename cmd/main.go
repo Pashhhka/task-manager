@@ -7,6 +7,9 @@ import (
 
 	"github.com/Pashhhka/task-manager/internal/config"
 	"github.com/Pashhhka/task-manager/internal/database"
+	"github.com/Pashhhka/task-manager/internal/handler"
+	"github.com/Pashhhka/task-manager/internal/repository"
+	"github.com/Pashhhka/task-manager/internal/service"
 )
 
 func main() {
@@ -21,10 +24,16 @@ func main() {
 	r := gin.Default()
 
 	r.GET("/ping", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "pong",
-		})
+		c.JSON(200, gin.H{"message": "pong"})
 	})
 
+	userRepo := repository.NewUserRepository(db)
+	authService := service.NewAuthService(userRepo)
+	authHandler := handler.NewAuthHandler(authService)
+
+	r.POST("/auth/register", authHandler.Register)
+	r.POST("/auth/login", authHandler.Login)
+
+	log.Println("Server starting on :8080")
 	r.Run(":8080")
 }
